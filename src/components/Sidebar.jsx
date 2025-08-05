@@ -1,17 +1,18 @@
 import {
   X,
   LayoutDashboard,
-  Users as UsersIcon,
   ChevronDown,
   ChevronRight,
   FilePlus,
   ClipboardList,
+  Layout,
+  Table,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 
 export default function Sidebar({ isOpen, onClose }) {
-  const [formsOpen, setFormsOpen] = useState(false);
+  const [tableOpen, setTableOpen] = useState(false);
 
   return (
     <>
@@ -45,41 +46,50 @@ export default function Sidebar({ isOpen, onClose }) {
           </Link>
 
           <Link
-            to="/users"
+            to="/produk"
             className="flex items-center px-2 py-1 rounded text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
           >
-            <UsersIcon className="w-4 h-4 mr-2" />
-            Users
+            <Layout className="w-4 h-4 mr-2" />
+            Produk
           </Link>
 
           {/* Dropdown: Forms */}
           <button
-            onClick={() => setFormsOpen(!formsOpen)}
+            onClick={() => setTableOpen(!tableOpen)}
             className="flex items-center justify-between w-full px-2 py-1 rounded text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
           >
             <div className="flex items-center">
               <ClipboardList className="w-4 h-4 mr-2" />
               Forms
             </div>
-            {formsOpen ? (
+            {tableOpen ? (
               <ChevronDown className="w-4 h-4" />
             ) : (
               <ChevronRight className="w-4 h-4" />
             )}
           </button>
 
-          {formsOpen && (
+          {tableOpen && (
             <div className="ml-6 mt-1 space-y-1">
               <Link
-                to="/forms/create"
+                to="/table/general"
                 className="flex items-center px-2 py-1 rounded text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <FilePlus className="w-4 h-4 mr-2" />
-                Create Form
+                Table General
+              </Link>
+              <Link
+                to="/table/data"
+                className="flex items-center px-2 py-1 rounded text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <Table className="w-4 h-4 mr-2" />
+                Table Data
               </Link>
               {/* Tambahkan submenu lainnya di sini */}
             </div>
           )}
+
+          {/* End Dropdown */}
         </nav>
       </div>
     </>

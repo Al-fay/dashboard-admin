@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 export default function Header({ toggleSidebar }) {
   const [theme, setTheme] = useState(
@@ -29,7 +30,7 @@ export default function Header({ toggleSidebar }) {
         <Menu className="w-6 h-6 text-gray-800 dark:text-white" />
       </button>
 
-      {/* Right: Avatar (gunakan ml-auto untuk dorong ke kanan) */}
+      {/* Right: Avatar */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Avatar className="cursor-pointer ml-auto">
@@ -40,6 +41,7 @@ export default function Header({ toggleSidebar }) {
         <DropdownMenuContent className="w-48" align="end">
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
+
           <DropdownMenuItem onClick={toggleTheme}>
             {theme === "dark" ? (
               <>
@@ -53,13 +55,21 @@ export default function Header({ toggleSidebar }) {
               </>
             )}
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Settings className="w-4 h-4 mr-2" />
-            Settings
+
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem asChild>
+            <Link to="/settings" className="flex items-center w-full">
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
+            </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
+
+          <DropdownMenuItem asChild>
+            <Link to="/login" className="flex items-center w-full text-red-400">
+              <LogOut className="w-4 h-4 mr-2 text-red-400" />
+              Logout
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
