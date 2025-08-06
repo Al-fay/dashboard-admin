@@ -69,6 +69,9 @@ const columns = [
 ];
 
 export default function DataTable() {
+  useState(() => {
+    document.title = "Datatable";
+  }, []);
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [roleFilter, setRoleFilter] = useState(""); // Filter khusus kolom Role
