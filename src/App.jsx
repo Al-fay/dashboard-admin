@@ -3,9 +3,11 @@ import Header from "./components/Header";
 import { useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
-import Produk from "./pages/Produk";
+import Tombol from "./pages/Tombol";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import General from "./pages/table/General";
+import DataTable from "./pages/table/DataTable";
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -39,7 +41,9 @@ export default function App() {
         <main className="h-full p-4 overflow-auto bg-neutral-100 text-gray-900 dark:bg-gray-900 dark:text-white">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/produk" element={<Produk />} />
+            <Route path="/tombol" element={<Tombol />} />
+            <Route path="/table/general" element={<General />} />
+            <Route path="/table/datatable" element={<DataTable />} />
           </Routes>
         </main>
       </div>

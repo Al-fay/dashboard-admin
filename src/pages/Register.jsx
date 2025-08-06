@@ -62,7 +62,7 @@ export default function Register() {
             </div>
 
             <div>
-              <Link to="/dashboard">
+              <Link to="/login">
                 <Button className="w-full">Register</Button>
               </Link>
             </div>

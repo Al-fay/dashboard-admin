@@ -46,11 +46,11 @@ export default function Sidebar({ isOpen, onClose }) {
           </Link>
 
           <Link
-            to="/produk"
+            to="/tombol"
             className="flex items-center px-2 py-1 rounded text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
           >
             <Layout className="w-4 h-4 mr-2" />
-            Produk
+            Button
           </Link>
 
           {/* Dropdown: Forms */}
@@ -60,7 +60,7 @@ export default function Sidebar({ isOpen, onClose }) {
           >
             <div className="flex items-center">
               <ClipboardList className="w-4 h-4 mr-2" />
-              Forms
+              Tables
             </div>
             {tableOpen ? (
               <ChevronDown className="w-4 h-4" />
@@ -79,7 +79,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 Table General
               </Link>
               <Link
-                to="/table/data"
+                to="/table/datatable"
                 className="flex items-center px-2 py-1 rounded text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <Table className="w-4 h-4 mr-2" />
