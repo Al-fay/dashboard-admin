@@ -42,10 +42,10 @@ const rawData = [
 const columnHelper = createColumnHelper();
 
 const columns = [
-  columnHelper.accessor("id", {
-    header: "ID",
-    cell: (info) => info.getValue(),
-  }),
+  // columnHelper.accessor("id", {
+  //   header: "ID",
+  //   cell: (info) => info.getValue(),
+  // }),
   columnHelper.accessor("name", {
     header: ({ column }) => (
       <Button
@@ -138,6 +138,7 @@ export default function DataTable() {
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
+                  <TableHead>No</TableHead> {/* Kolom nomor urut manual */}
                   {headerGroup.headers.map((header) => (
                     <TableHead key={header.id}>
                       {header.isPlaceholder
@@ -153,8 +154,9 @@ export default function DataTable() {
             </TableHeader>
             <TableBody>
               {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id}>
+                table.getRowModel().rows.map((row, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{index + 1}</TableCell> {/* Nomor urut */}
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>
                         {flexRender(
@@ -168,7 +170,7 @@ export default function DataTable() {
               ) : (
                 <TableRow>
                   <TableCell
-                    colSpan={columns.length}
+                    colSpan={columns.length + 1} // +1 untuk kolom 'No'
                     className="h-24 text-center"
                   >
                     Tidak ada data
