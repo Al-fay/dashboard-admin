@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import General from "./pages/table/General";
 import DataTable from "./pages/table/DataTable";
+import Alert from "./pages/TampilanAlert";
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="/tombol" element={<Tombol />} />
             <Route path="/table/general" element={<General />} />
             <Route path="/table/datatable" element={<DataTable />} />
+            <Route path="/alert" element={<Alert />} />
           </Routes>
         </main>
       </div>

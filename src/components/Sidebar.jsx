@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Layout,
   Table,
+  AlertCircle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
@@ -88,8 +89,15 @@ export default function Sidebar({ isOpen, onClose }) {
               {/* Tambahkan submenu lainnya di sini */}
             </div>
           )}
-
           {/* End Dropdown */}
+
+          <Link
+            to="/alert"
+            className="flex items-center px-2 py-1 rounded text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+          >
+            <AlertCircle className="w-4 h-4 mr-2" />
+            Alert
+          </Link>
         </nav>
       </div>
     </>
