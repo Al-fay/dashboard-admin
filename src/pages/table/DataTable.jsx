@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   useReactTable,
   getCoreRowModel,
@@ -17,7 +15,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,83 +24,137 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Loader2Icon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-// Dummy data
-const rawData = [
-  { id: 1, name: "Budi", email: "budi@example.com", role: "Admin" },
-  { id: 2, name: "Sari", email: "sari@example.com", role: "User" },
-  { id: 3, name: "Tono", email: "tono@example.com", role: "Editor" },
-  { id: 4, name: "Ayu", email: "ayu@example.com", role: "User" },
-];
-
-// Kolom definisi
 const columnHelper = createColumnHelper();
 
-const columns = [
-  // columnHelper.accessor("id", {
-  //   header: "ID",
-  //   cell: (info) => info.getValue(),
-  // }),
-  columnHelper.accessor("name", {
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Nama
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor("email", {
-    header: "Email",
-    cell: (info) => info.getValue(),
-  }),
-  columnHelper.accessor("role", {
-    header: "Role",
-    cell: (info) => info.getValue(),
-  }),
-];
-
 export default function DataTable() {
-  useState(() => {
-    document.title = "Datatable";
-  }, []);
+  const [data, setData] = useState([]);
   const [sorting, setSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
-  const [roleFilter, setRoleFilter] = useState(""); // Filter khusus kolom Role
+  const [roleCategory, setRoleCategory] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // Filter data berdasarkan global search + role
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(() => {
+    const saved = localStorage.getItem("pageSize");
+    return saved ? (saved === "all" ? "all" : Number(saved)) : 10;
+  });
+
+  // Ambil data dari API
+  useEffect(() => {
+    document.title = "Datatable";
+    const fetchData = async () => {
+      try {
+        const res = await fetch(
+          "https://bukuacak-9bdcb4ef2605.herokuapp.com/api/v1/book"
+        );
+        const json = await res.json();
+        setData(Array.isArray(json.books) ? json.books : []);
+      } catch (err) {
+        console.error("Gagal fetch data", err);
+        setData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Ambil kategori unik dari data
+  const uniqueCategories = useMemo(() => {
+    return [
+      "all",
+      ...new Set(data.map((b) => b.category?.name).filter(Boolean)),
+    ];
+  }, [data]);
+
+  // Filter data
   const filteredData = useMemo(() => {
-    return rawData.filter((item) => {
+    return data.filter((item) => {
       const matchesSearch = Object.values(item)
         .join(" ")
         .toLowerCase()
         .includes(globalFilter.toLowerCase());
-
-      const matchesRole =
-        roleFilter === "all" || roleFilter === ""
+      const matchesCategory =
+        roleCategory === "all" || roleCategory === ""
           ? true
-          : item.role === roleFilter;
-
-      return matchesSearch && matchesRole;
+          : item.category?.name === roleCategory;
+      return matchesSearch && matchesCategory;
     });
-  }, [globalFilter, roleFilter]);
+  }, [data, globalFilter, roleCategory]);
+
+  // Hitung pagination
+  const totalPages =
+    pageSize === "all" ? 1 : Math.ceil(filteredData.length / pageSize);
+  const paginatedData = useMemo(() => {
+    if (pageSize === "all") return filteredData;
+    const start = (currentPage - 1) * pageSize;
+    return filteredData.slice(start, start + pageSize);
+  }, [filteredData, currentPage, pageSize]);
+
+  // Kolom tabel
+  const columns = [
+    columnHelper.accessor("cover_image", {
+      header: "Cover",
+      cell: (info) => (
+        <img
+          src={info.getValue()}
+          alt="Cover Buku"
+          loading="lazy"
+          className="w-12 h-16 object-cover rounded"
+        />
+      ),
+    }),
+    columnHelper.accessor("title", {
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Judul Buku
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor((row) => row.author?.name || "-", {
+      id: "author",
+      header: "Penulis",
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor((row) => row.category?.name || "-", {
+      id: "category",
+      header: "Kategori",
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor("publisher", {
+      header: "Penerbit",
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor((row) => row.details?.price || "-", {
+      id: "price",
+      header: "Harga",
+      cell: (info) => info.getValue(),
+    }),
+    columnHelper.accessor((row) => row.details?.total_pages || "-", {
+      id: "total_pages",
+      header: "Total Halaman",
+      cell: (info) => info.getValue(),
+    }),
+  ];
 
   const table = useReactTable({
-    data: filteredData,
+    data: paginatedData,
     columns,
     state: { sorting },
     onSortingChange: setSorting,
@@ -113,100 +164,163 @@ export default function DataTable() {
 
   return (
     <div className="container mx-auto py-3">
-      <h1 className="text-2xl font-bold mb-4">Tabel Pengguna</h1>
+      <h1 className="text-2xl font-bold mb-4">Tabel Buku</h1>
 
       <Card className="p-5">
-        {/* Filter Section */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4">
+        {/* Filter */}
+        <div className="flex flex-wrap sm:flex-nowrap items-start sm:items-center gap-2 sm:gap-4 mb-4">
           <Input
             placeholder="Cari semua kolom..."
             value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            className="max-w-sm bg-slate-200"
+            onChange={(e) => {
+              setGlobalFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full sm:max-w-sm bg-slate-200"
           />
 
           <Select
-            onValueChange={(value) => setRoleFilter(value)}
-            value={roleFilter}
+            onValueChange={(value) => {
+              setRoleCategory(value);
+              setCurrentPage(1);
+            }}
+            value={roleCategory}
           >
-            <SelectTrigger className="w-[125px] bg-slate-200">
-              <SelectValue placeholder="Filter Role" />
+            <SelectTrigger className="w-full sm:w-[150px] bg-slate-200">
+              <SelectValue placeholder="Filter Kategori" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Semua Role</SelectItem>
-              <SelectItem value="Admin">Admin</SelectItem>
-              <SelectItem value="User">User</SelectItem>
-              <SelectItem value="Editor">Editor</SelectItem>
+              {uniqueCategories.map((cat) => (
+                <SelectItem key={cat} value={cat}>
+                  {cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={String(pageSize)}
+            onValueChange={(value) => {
+              const newSize = value === "all" ? "all" : Number(value);
+              setPageSize(newSize);
+              localStorage.setItem("pageSize", value);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-[100px] bg-slate-200">
+              <SelectValue placeholder="Per Hal." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+              <SelectItem value="all">Semua</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {/* Table */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  <TableHead>No</TableHead> {/* Kolom nomor urut manual */}
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{index + 1}</TableCell> {/* Nomor urut */}
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
+        <div className="rounded-md border bg-slate-200 dark:bg-slate-800">
+          {loading ? (
+            <div className="flex p-4 justify-center">
+              <Loader2Icon className="animate-spin" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    <TableHead>No</TableHead>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
                     ))}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length + 1} // +1 untuk kolom 'No'
-                    className="h-24 text-center"
-                  >
-                    Tidak ada data
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        {(currentPage - 1) *
+                          (pageSize === "all"
+                            ? filteredData.length
+                            : pageSize) +
+                          index +
+                          1}
+                      </TableCell>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length + 1}
+                      className="h-24 text-center"
+                    >
+                      Tidak ada data
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </div>
-        <div className="items-end">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious href="#" />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#">1</PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext href="#" />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
+
+        {/* Pagination */}
+        {pageSize !== "all" && (
+          <div className="items-end mt-4">
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  />
+                </PaginationItem>
+                {[...Array(totalPages)].map((_, i) => (
+                  <PaginationItem key={i}>
+                    <PaginationLink
+                      href="#"
+                      onClick={() => setCurrentPage(i + 1)}
+                      isActive={currentPage === i + 1}
+                      className={
+                        currentPage === i + 1
+                          ? "bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900"
+                          : ""
+                      }
+                    >
+                      {i + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        )}
       </Card>
     </div>
   );
